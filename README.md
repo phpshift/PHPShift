@@ -1,25 +1,7 @@
-# PHPShift v1.0.1
+<br/>
+<p align="center"><a href="https://phpshift.com" target="_blank"><img src="https://phpshift.com/assets/phpshift-banner.png" width="600" alt="PHPShift Logo"></a></p>
+<br/>
 
-**Project**: PHPShift
-<br>**Version**: 1.0.1
-<br>**OS**: OS Independent
-<br>**Author**: Irakli Gzirishvili
-<br>**Mail**: irakli@phpshift.com
+## About PHPShift
 
-**PHPShift** is a Python command-line interface application. PHPShift is the world's first AI-powered full-stack framework, it includes a diverse set of AI skills for automated project development.
-
-## Installation
-
-To use **PHPShift**, follow these steps:
-
-- Open CMD and run the following command to install `pip install phpshift` then restart your CMD
-- To check if **PHPShift** is installed correctly, run the following command `phpshift`
-
-## Commands
-
-These are the available commands you can use:
-
-- `phpshift` - To list available commands
-- `phpshift new` - Create new project
-- `phpshift start` - Start project development
-- `phpshift stop` - Stop localhost if didn't by itself
+PHPShift™ is the world's first AI-powered full-stack framework, it includes a diverse set of AI skills that are chosen and orchestrated based on developer requirements to achieve the expected results
