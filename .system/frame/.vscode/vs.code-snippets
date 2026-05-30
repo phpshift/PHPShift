@@ -1,0 +1,42 @@
+{
+  "Return true": {
+    "prefix": "tt",
+    "body": ["return true;"],
+    "description": "Return true"
+  },
+  "Return false": {
+    "prefix": "ff",
+    "body": ["return false;"],
+    "description": "Return false"
+  },
+  "App print": {
+    "prefix": "pp",
+    "body": ["App::print($CLIPBOARD);"],
+    "description": "App print"
+  },
+  "App print & die": {
+    "prefix": "pd",
+    "body": ["App::print($CLIPBOARD, true);"],
+    "description": "App print & die"
+  },
+  "PHP print": {
+    "prefix": "ppp",
+    "body": ["echo '<pre>';", "print_r($CLIPBOARD);", "echo '</pre>';"],
+    "description": "Print"
+  },
+  "PHP print & die": {
+    "prefix": "ppd",
+    "body": ["echo '<pre>';", "print_r($CLIPBOARD);", "die();"],
+    "description": "Print & die"
+  },
+  "JS print": {
+    "prefix": "jp",
+    "body": ["console.log($CLIPBOARD);"],
+    "description": "Print"
+  },
+  "JS print & die": {
+    "prefix": "jd",
+    "body": ["console.log($CLIPBOARD); throw new Error(\"Execution stopped!\");"],
+    "description": "Print & die"
+  }
+}

@@ -1,0 +1,14 @@
+.system/cache/*
+!.system/cache/x.placeholder
+.system/sessions/*
+!.system/sessions/x.placeholder
+.system/storage/*
+!.system/storage/x.placeholder
+.system/vendor/
+.system/backup.sql
+.system/patch.json
+.vscode
+*.log
+.env
+.yml
+.md

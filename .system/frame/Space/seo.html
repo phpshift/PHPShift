@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Meta Basic -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <title>{{project_name}}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" data-translate-key="meta.description" content="" />
+    <meta name="keywords" data-translate-key="meta.keywords" content="" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://{{production_domain}}" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://{{production_domain}}" />
+    <meta property="og:title" data-translate-key="meta.og.title" content="" />
+    <meta property="og:description" data-translate-key="meta.og.description" content="" />
+    <meta property="og:image" content="https://{{production_domain}}/assets/share.png" />
+    <meta property="og:site_name" content="" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://{{production_domain}}" />
+    <meta property="twitter:title" data-translate-key="meta.twitter.title" content="" />
+    <meta property="twitter:description" data-translate-key="meta.twitter.description" content="" />
+    <meta property="twitter:image" content="https://{{production_domain}}/assets/share.png" />
+    <meta property="twitter:creator" content="@ExampleCompany" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "name": "",
+            "url": "https://{{production_domain}}/",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://{{production_domain}}/search?term={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "Organization",
+            "name": "",
+            "url": "https://{{production_domain}}/",
+            "logo": "https://{{production_domain}}/assets/logo.png",
+            "sameAs": [
+              "https://www.facebook.com/ExampleCompany",
+              "https://twitter.com/ExampleCompany",
+              "https://www.instagram.com/ExampleCompany"
+            ]
+          },
+          {
+            "@type": "Product",
+            "name": "",
+            "description": "",
+            "url": "https://{{production_domain}}",
+            "image": "https://{{production_domain}}/assets/share.png",
+            "brand": {
+              "@type": "Organization",
+              "name": "ExampleCompany"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": ""
+              "reviewCount": ""
+            }
+          }
+        ]
+      }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/style.css" />
+    <script src="/assets/jQuery.js"></script>
+    <script src="/assets/jQook.js"></script>
+    <script src="/assets/script.js"></script>
+  </head>
+  <body>
+    <div id="system-loader"><div></div></div>
+    <img class="system-background" src="/assets/background.webp" alt=" " />

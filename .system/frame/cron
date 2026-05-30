@@ -1,0 +1,29 @@
+<?php chdir(__DIR__);
+
+$cron_name = isset($argv[1]) && $argv[1][0] === '-' ? trim(substr($argv[1], 1)) : '';
+if (empty($cron_name)) die;
+if (!preg_match('/^[A-Za-z0-9_]+$/', $cron_name)) die;
+$cron_auto = $cron_name == 'auto';
+if (!$cron_auto && !file_exists('Crons/' . $cron_name . '.php')) die;
+require_once '.system/app.php';
+function sanitizeCronArgs($args = [])
+{
+    foreach ($args as $arg)
+    {
+        if (!is_string($arg) || $arg == '') continue;
+        if (!preg_match('/^[A-Za-z0-9@=.,:_+\/-]+$/', $arg)) die('Invalid cron argument.');
+    }
+    return $args;
+}
+unset($argv[0], $argv[1]);
+$cron_args = sanitizeCronArgs(array_values($argv));
+function schedule($timing = '')
+{
+    App::checkCron($timing);
+}
+if ($cron_auto) App::runCrons($cron_args);
+require_once 'Crons/' . $cron_name . '.php';
+if (!class_exists('Cron' . ucfirst($cron_name))) die;
+$cron_name = 'Cron' . $cron_name;
+$obj = new $cron_name();
+$obj->init($cron_args);

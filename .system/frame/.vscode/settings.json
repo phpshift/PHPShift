@@ -1,0 +1,12 @@
+{
+    "files.exclude": {
+        "**/x.placeholder": true,
+        "**/.system": true,
+        "**/.vscode": true,
+        "**/.htaccess": true,
+        "**/.gitignore": true,
+        "**/LICENSE": true,
+        "**/README.md": true,
+        "**/cron": true,
+    }
+}

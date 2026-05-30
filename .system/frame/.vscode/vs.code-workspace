@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "path": "<project_dir>"
+        }
+    ],
+    "settings": {
+        "editor.fontSize": 14,
+        "window.zoomLevel": 1,
+        "editor.wordWrap": "off",
+        "editor.formatOnSave": false
+    }
+}

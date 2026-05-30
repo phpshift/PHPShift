@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /Apis/
+Allow: /
+
+Sitemap: https://{{production_domain}}/sitemap.xml
