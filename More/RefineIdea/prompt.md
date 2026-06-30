@@ -21,6 +21,14 @@ Solution: (how does this project solve described problem? describe shortly);
 - welcome: (what is this page for? what features does it have? describe shortly);
 ...
 
+**APIs** (if needed)
+
+...
+
+**Cron Jobs** (if needed)
+
+...
+
 **Usage**
 
 The user's step-by-step journey through this project:

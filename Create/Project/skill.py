@@ -7,14 +7,14 @@ class CreateProject:
         cli.setLoading("Creating the project")
 
         prompt = AISI.prompt(message, skill)
-        pages = AISI.FILES(prompt)
-        if not pages:
+        files = AISI.FILES(prompt)
+        if not files:
             return {}
 
-        if "config.json" not in pages:
+        if "config.json" not in files:
             return {}
 
-        config = json.loads(pages.get("config.json", "{}"))
+        config = json.loads(files.get("config.json", "{}"))
         VAR.styling = config.get("landing-page", "").strip()
         if not VAR.styling:
             return {}
@@ -24,51 +24,64 @@ class CreateProject:
         Help.setEnv("PROJECT_LANDING", VAR.styling)
         cli.command(f"code {project}/.env", False, True)
 
-        if "db.sql" in pages and pages["db.sql"].strip() != "":
+        if "db.sql" in files and files["db.sql"].strip() != "":
             sql_file = project + "/db.sql"
-            cli.write(sql_file, pages["db.sql"])
+            cli.write(sql_file, files["db.sql"])
             cli.command("code " + sql_file, False, True)
             if cli.selection("Confirm to update database", ["Go", "No"], True) == "Go":
                 cli.trace("Updating database")
                 DB.reset()
                 DB.new(DB.name())
-                DB.submit(pages["db.sql"])
+                DB.submit(files["db.sql"])
             os.remove(sql_file)
 
-        for each in pages:
+        for each in files:
             if each in ["config.json"]:
                 continue
 
-            parts = each.split(".")
-            if len(parts) != 3:
-                cli.trace(f"Skipping '{each}'")
+            parts = each.split("/")
+            if parts[-1].endswith(".md"):
+                parts[-1] = parts[-1].replace(".md", "")
+
+            if parts[-1] in ["README", "readme"]:
                 continue
 
-            group, page, extension = parts
-            if (
-                not group
-                or not page
-                or page in ["README", "readme"]
-                or extension != "md"
-            ):
-                cli.trace(f"Skipping '{group}.{page}'")
-                continue
+            if each.startswith("page/"):
+                unit, group, page = parts
+                cli.trace(f"Creating {unit} '{group}.{page}'")
+                AISI.run(
+                    {
+                        "group": group,
+                        "page": page,
+                        "description": "Create new page, here is the description:\n\n"
+                        + files[each],
+                        "internal": True,
+                    },
+                    "Render.Page",
+                )
+                pass
 
-            cli.trace(f"Creating '{group}.{page}'")
-            AISI.run(
-                {
-                    "group": group,
-                    "page": page,
-                    "description": "Create new page, here is the description:\n\n"
-                    + pages[each],
-                    "internal": True,
-                },
-                "Render.Page",
-            )
+            if each.startswith("api/"):
+                unit, api = parts
+                cli.trace(f"Creating {unit} '{api}'")
+                AISI.run(
+                    "Create new API, here is the description:\n\n" + files[each],
+                    "Create.API",
+                )
+                pass
 
-        if "README.md" in pages and pages["README.md"].strip() != "":
+            if each.startswith("cron/"):
+                unit, cron = parts
+                cli.trace(f"Creating {unit} '{cron}'")
+                AISI.run(
+                    "Create new cron job, here is the description:\n\n" + files[each],
+                    "Create.Cron",
+                )
+                pass
+
+        if "README.md" in files and files["README.md"].strip() != "":
             Patch.add(project + "/README.md")
-            cli.write(project + "/README.md", pages["README.md"])
+            cli.write(project + "/README.md", files["README.md"])
 
         AISI.run("", "Create.SEO")
 
@@ -90,7 +103,7 @@ class CreateProject:
         Help.updateSitemap()
         VAR.styling = ""
 
-        return pages
+        return files
 
     ####################################################################################// Helpers
     # def __helperExample(self, skill="")

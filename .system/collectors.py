@@ -305,6 +305,21 @@ class Collectors:
 
         return AISI.format("md", cli.read(file).strip(), "Solved issues not found.")
 
-    # def ___(self, message="", project="", skill=""):
-    #     cli.trace("Loading ___")
-    #     return AISI.format("txt", "...", "___ not found.")
+    def logContent(self, message="", project="", skill=""):
+        cli.trace("Loading log content")
+
+        if not hasattr(VAR, "log_file_path") or not VAR.log_file_path:
+            return AISI.format("txt", "", "No log file specified for analysis.")
+
+        file_path = VAR.log_file_path
+        if not os.path.exists(file_path):
+            return AISI.format(
+                "txt", "", f"Log file not found: {os.path.basename(file_path)}."
+            )
+
+        content = cli.read(file_path)
+        return AISI.format(
+            "txt",
+            content.strip(),
+            f"Could not read content from {os.path.basename(file_path)}.",
+        )

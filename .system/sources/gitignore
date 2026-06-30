@@ -7,8 +7,9 @@
 .system/vendor/
 .system/backup.sql
 .system/patch.json
+/summary.md
 .vscode
 *.log
-.env
-.yml
-.md
+/.env
+/.yml
+/.md

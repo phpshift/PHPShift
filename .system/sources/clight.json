@@ -1,13 +1,13 @@
 {
-    "Name": "PHPShift",
-    "Version": "1.0.1",
-    "Description": "PHPShift is the world's first AI-powered full-stack framework, it includes a diverse set of AI skills for automated project development.",
-    "Link": "https://github.com/phpshift/PHPShift",
-    "CMD": "phpshift",
-    "Author": "Irakli Gzirishvili",
-    "Mail": "irakli@phpshift.com",
-    "Project Type": "App",
-    "Repository Type": "GitHub",
-    "License": "MIT License",
-    "Operating System": "OS Independent"
+  "Name": "PHPShift",
+  "Version": "1.0.2",
+  "Description": "PHPShift is the world's first AI-powered full-stack framework, it includes a diverse set of AI skills for automated project development.",
+  "Link": "https://github.com/phpshift/PHPShift",
+  "CMD": "phpshift",
+  "Author": "Irakli Gzirishvili",
+  "Mail": "irakli@phpshift.com",
+  "Project Type": "App",
+  "Repository Type": "GitHub",
+  "License": "MIT License",
+  "Operating System": "OS Independent"
 }

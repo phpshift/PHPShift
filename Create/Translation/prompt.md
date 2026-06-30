@@ -3,7 +3,7 @@ Lets enable page translation, follow these steps:
 
 1. Update provided HTML page file to add page translation tag on top right corner of page (or to the end of navigation if menu exists), like this:
 ```html
-<translation languages="en,ka" />
+<translation languages="en,ka"></translation>
 ```
 
 > Note: If the translation tag already exists, just append requested new language abbreviation (e.g 'ru') to the languages attribute CSV list;

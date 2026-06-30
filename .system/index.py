@@ -79,6 +79,7 @@ class index:
         if self.__hasKeyFile():
             self.__refineIdea()
 
+        Help.installLicense(self.cwd)
         self.__git()
         Help.createShortcut(values["project_name"])
         cli.command(f"code {self.cwd}/.md", False, True)
@@ -121,13 +122,47 @@ class index:
                 skip.append("Edit.Project")
             if not self.__hasApis():
                 skip.append("Edit.API")
+                skip.append("Delete.API")
                 pass
             if not self.__hasCrons():
                 skip.append("Edit.Cron")
+                skip.append("Delete.Cron")
                 pass
             if not self.__hasPages():
                 skip.append("Edit.Page")
+                skip.append("Delete.Page")
                 pass
+            if not self.__hasTranslations():
+                skip.append("Edit.Translation")
+                skip.append("Delete.Translation")
+                pass
+            if not self.__hasLogs():
+                skip.append("Delete.Log")
+                pass
+
+            if self.__hasLICENSE():
+                skip.append("Create.LICENSE")
+            else:
+                skip.append("Edit.LICENSE")
+                skip.append("Delete.LICENSE")
+                pass
+            if self.__hasREADME():
+                skip.append("Create.README")
+            else:
+                skip.append("Edit.README")
+                skip.append("Delete.README")
+                pass
+            if self.__hasSEO():
+                skip.append("Create.SEO")
+            else:
+                skip.append("Edit.SEO")
+                skip.append("Delete.SEO")
+                pass
+
+            if Help.thread != None:
+                skip.append("More.StartCrons")
+            else:
+                skip.append("More.StopCrons")
 
             if not option:
                 option = AISI.skills(False, skip)
@@ -280,8 +315,7 @@ class index:
         if cli.selection("Want to start corn jobs?", ["Yes", "No"], True) != "Yes":
             return False
 
-        thread = threading.Thread(target=self.__runCrons, daemon=True)
-        thread.start()
+        Help.startCrons()
 
         return True
 
@@ -318,6 +352,33 @@ class index:
     def __hasUnits(self):
         return self.__hasApis() or self.__hasCrons() or self.__hasPages()
 
+    def __hasLICENSE(self):
+        return os.path.exists(self.cwd + "/LICENSE")
+
+    def __hasREADME(self):
+        return os.path.exists(self.cwd + "/README.md")
+
+    def __hasSEO(self):
+        content = cli.read(self.cwd + "/Space/seo.html")
+
+        return "{{project_name}}" not in content
+
+    def __hasTranslations(self):
+        files = []
+        for file in os.listdir(self.cwd + "/Space"):
+            if file.startswith("lng.") and file.endswith(".json"):
+                files.append(file)
+
+        return len(files) > 0
+
+    def __hasLogs(self):
+        files = []
+        for file in os.listdir(self.cwd + "/Space"):
+            if file.endswith(".log"):
+                files.append(file)
+
+        return len(files) > 0
+
     def __message(self, hint="", must=False):
         message = cli.input(hint, must)
         if message == ".md":
@@ -345,6 +406,9 @@ class index:
         cli.command("git add .", True, True, self.cwd)
         cli.command('git commit -m "' + commit + '"', True, True, self.cwd)
         cli.unline()
+
+        if not Help.gitHasRemote():
+            return False
 
         if cli.selection("Want to push commits?", ["Yes", "No"], True) == "No":
             return False
@@ -394,6 +458,7 @@ class index:
             Help.getEnv("PHPSHIFT_AIKEY"),
         )
 
+        Patch.new()
         message = cli.input("Describe the project shortly", True)
         AISI.run(message, "More.RefineIdea")
 
@@ -419,14 +484,3 @@ class index:
             return False
 
         return True
-
-    def __runCrons(self):
-        while True:
-            now = time.time()
-            next_minute = (now // 60 + 1) * 60
-            time.sleep(next_minute - now)
-            subprocess.run(
-                f"php {self.cwd}/cron -auto",
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )

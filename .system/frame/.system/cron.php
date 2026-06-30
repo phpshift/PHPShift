@@ -72,13 +72,13 @@ class Cron
         $className = $this->detectClassName($file);
         if ($className === null)
         {
-            App::log('cron', "SKIP  {$file} — no class definition found.");
+            App::log('cron', "SKIP  {$file} - no class definition found.");
             return;
         }
 
         if (self::$pendingExpression === null)
         {
-            App::log('cron', "SKIP  {$file} — schedule() was not called.");
+            App::log('cron', "SKIP  {$file} - schedule() was not called.");
             return;
         }
 

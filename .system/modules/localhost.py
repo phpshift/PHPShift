@@ -38,11 +38,17 @@ class Localhost:
         if not os.path.exists(apache) and not os.path.exists(mysql):
             return False
 
-        if len(hint) > 0:
-            content = cli.read("C:/xampp/apache/conf/extra/httpd-vhosts.conf")
-            pattern = rf"# {hint}-vhost(.*?)</VirtualHost>"
-            if len(content.strip()) > 0 and re.findall(pattern, content, re.DOTALL):
-                return True
+        if len(hint) <= 0:
+            return False
+
+        vhosts = cli.read("C:/xampp/apache/conf/extra/httpd-vhosts.conf")
+        patt1 = rf"# {hint}-vhost(.*?)</VirtualHost>"
+        if len(vhosts.strip()) <= 0 or not re.findall(patt1, vhosts, re.DOTALL):
+            return False
+
+        hosts = cli.read("C:/Windows/System32/drivers/etc/hosts")
+        patt2 = rf"# {hint}-hosts(.*?)# {hint}-host"
+        if len(hosts.strip()) <= 0 or not re.findall(patt2, hosts, re.DOTALL):
             return False
 
         return True
@@ -61,10 +67,6 @@ class Localhost:
 
         if Localhost.check(self.hint):
             return True
-
-        if Localhost.check():
-            cli.trace("Stopping XAMPP")
-            cli.command("C:/xampp/xampp_stop.exe", False, True)
 
         if not self.setVirtualHost():
             return False

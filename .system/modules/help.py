@@ -7,6 +7,8 @@ class Help:
     cwd = ""
     args = []
     config = {}
+    thread = None
+    stop_event = threading.Event()
 
     ####################################################################################// Load
     def __init__(self, app="", cwd="", args=[]):
@@ -130,6 +132,23 @@ class Help:
         matches = re.findall(pattern, content, re.VERBOSE)
 
         return sorted(set(matches))
+
+    def selectAPI():
+        if not Help.cwd:
+            return ""
+
+        crons = []
+        for cron in os.listdir(f"{Help.cwd}/Apis"):
+            if cron in ["x.placeholder"]:
+                continue
+            crons.append(cron[:-4])
+        crons.append("[Back]")
+
+        cron = cli.selection("Select API", crons, True)
+        if cron == "[Back]":
+            return ""
+
+        return cron + ".php"
 
     def selectCron():
         if not Help.cwd:
@@ -288,3 +307,67 @@ class Help:
         shortcut.save()
 
         return True
+
+    def installLicense(folder="", must=False):
+        storage = os.path.join(Help.app, ".system/licenses")
+        options = os.listdir(storage)
+
+        if must:
+            options.append("Exit")
+
+        selected = cli.selection("Select the license", options, must)
+        if not selected or selected == "Exit":
+            return False
+
+        template = os.path.join(storage, selected)
+        year = datetime.now().strftime("%Y")
+        author = Help.getEnv("PROJECT_AUTHOR", "Publisher")
+
+        content = cli.read(template)
+        content = content.replace("{{year}}", year).replace("{{author}}", author)
+
+        file = os.path.join(folder, "LICENSE")
+        Patch.add(file)
+
+        cli.trace("Saving LICENSE file")
+        if not cli.write(file, content):
+            return False
+
+        return True
+
+    def startCrons():
+        if Help.thread is not None:
+            return False
+
+        Help.stop_event.clear()
+        Help.thread = threading.Thread(target=Help.__runCrons, daemon=True)
+        Help.thread.start()
+
+        return True
+
+    def stopCrons():
+        if Help.thread is None:
+            return False
+
+        Help.stop_event.set()
+        Help.thread.join()
+        Help.thread = None
+
+        return True
+
+    def gitHasRemote():
+        return cli.command("git remote", True, True, Help.cwd, True).strip() != ""
+
+    ####################################################################################// Helpers
+    def __runCrons():
+        while not Help.stop_event.is_set():
+            now = time.time()
+            next_minute = (now // 60 + 1) * 60
+            if Help.stop_event.wait(next_minute - now):
+                break
+            subprocess.run(
+                f"php {Help.cwd}/cron -auto",
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                shell=True,
+            )
