@@ -33,7 +33,7 @@ class ReadGit:
         summary_instruction_prompt = (
             "You are a skilled technical writer. "
             "Analyze the following Git command output and create a concise, informative summary in Markdown format. "
-            "Highlight key details, success/failure indicators, and any relevant information. "
+            "Highlight key details, success/failure indicators and any relevant information. "
             "Output should be a single file named 'summary.md'.\n\n"
             "--- Git Command Output ---\n"
             f"{git_output}\n"

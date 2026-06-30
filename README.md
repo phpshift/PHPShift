@@ -3,7 +3,6 @@
 <p align="center">
 <a href="https://github.com/phpshift/PHPShift" target="_blank"><img src="https://img.shields.io/badge/PHPShift-1.0.0-%23cc00ff" alt="PHPShift"></a>
 </p>
-<hr/>
 <br/>
 
 **The world's first AI-powered full-stack PHP framework.**
@@ -28,4 +27,4 @@ Describe a project, page, an API, or a Cron job - PHPShift's AI engine writes th
 - [Contributing](https://github.com/phpshift/PHPShift/blob/main/CONTRIBUTING.md)
 - [Security](https://github.com/phpshift/PHPShift/blob/main/SECURITY.md)
 
-> PHPShift™ framework is an independent open-source project created by **Irakli Gzirishvili**, and is not affiliated with, endorsed by, or officially associated with the PHP Group.
+> PHPShift™ framework is an independent open-source project created by **Irakli Gzirishvili** and is not affiliated with, endorsed by, or officially associated with the PHP Group.

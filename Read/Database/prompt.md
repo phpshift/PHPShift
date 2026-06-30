@@ -12,7 +12,7 @@ This is the current database schema:
 
 **Required**
 
-I need you to generate two files: `statement.sql` containing the MySQL query, and `params.json` containing the query parameters.
+I need you to generate two files: `statement.sql` containing the MySQL query and `params.json` containing the query parameters.
 
 **Rules**
 
