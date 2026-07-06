@@ -1,5 +1,7 @@
 from clight.system.importer import cli  # DON'T REMOVE THIS LINE
 
+# import pywin32
+
 import os
 import re
 import sys
@@ -20,7 +22,7 @@ import subprocess
 import webbrowser
 import aisi as AISI
 
-from win32com.client import Dispatch
+from win32com.client import Dispatch  # !install
 from datetime import datetime, timezone
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
