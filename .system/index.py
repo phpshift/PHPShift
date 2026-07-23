@@ -469,6 +469,7 @@ class index:
             Patch.rollback()
             return False
 
+        Patch.confirm()
         return True
 
     def __hasKeyFile(self):
