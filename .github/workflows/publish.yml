@@ -1,9 +1,10 @@
-name: Publish Python package to PyPI
+name: Publish to PyPI
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   Deploy:
@@ -11,7 +12,6 @@ jobs:
       github.ref == 'refs/heads/main' &&
       !contains(github.event.head_commit.message, '[!deploy]')
     runs-on: windows-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
