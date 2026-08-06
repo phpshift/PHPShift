@@ -67,9 +67,14 @@ class index:
         if os.path.exists(config):
             content = cli.read(config)
             content = content.replace("<database_pass>", cli.input("Database pass"))
+            try:
+                ai_model_value = AISI.models(True)
+            except Exception as e:
+                cli.error(str(e))
+                ai_model_value = ""
             content = content.replace(
                 "<ai_model>",
-                AISI.models(True),
+                ai_model_value,
             )
             content = content.replace("<ai_key>", cli.input("API Key", True))
             cli.write(config, content)
@@ -165,7 +170,13 @@ class index:
                 skip.append("More.StopCrons")
 
             if not option:
-                option = AISI.skills(False, skip)
+                try:
+                    option = AISI.skills(False, skip)
+                except Exception as e:
+                    cli.error(str(e))
+                    option = ""
+                    task = ""
+                    continue
 
             if not option:
                 self.stop()
@@ -187,7 +198,18 @@ class index:
             VAR.styling = ""
 
             cli.setLoading("Working")
-            if not AISI.run(task, option):
+            try:
+                success = AISI.run(task, option)
+            except Exception as e:
+                cli.endLoading()
+                cli.error(str(e))
+                Patch.rollback()
+                DB.rollback()
+                option = ""
+                task = ""
+                continue
+
+            if not success:
                 cli.endLoading()
                 cli.trace("Could not complete the task")
                 Patch.rollback()
@@ -284,12 +306,15 @@ class index:
 
         DB.new(db_name)
 
-        AISI.init(
-            self.app,
-            f"{self.app}/.system/collectors.py",
-            Help.getEnv("PHPSHIFT_AIMODEL"),
-            Help.getEnv("PHPSHIFT_AIKEY"),
-        )
+        try:
+            AISI.init(
+                self.app,
+                f"{self.app}/.system/collectors.py",
+                Help.getEnv("PHPSHIFT_AIMODEL"),
+                Help.getEnv("PHPSHIFT_AIKEY"),
+            )
+        except Exception as e:
+            cli.error(str(e))
 
         pass
 
@@ -451,16 +476,20 @@ class index:
         if cli.selection("Want to refine your idea?", ["Yes", "No"], True) == "No":
             return False
 
-        AISI.init(
-            self.app,
-            f"{self.app}/.system/collectors.py",
-            Help.getEnv("PHPSHIFT_AIMODEL"),
-            Help.getEnv("PHPSHIFT_AIKEY"),
-        )
+        try:
+            AISI.init(
+                self.app,
+                f"{self.app}/.system/collectors.py",
+                Help.getEnv("PHPSHIFT_AIMODEL"),
+                Help.getEnv("PHPSHIFT_AIKEY"),
+            )
 
-        Patch.new()
-        message = cli.input("Describe the project shortly", True)
-        AISI.run(message, "More.RefineIdea")
+            Patch.new()
+            message = cli.input("Describe the project shortly", True)
+            AISI.run(message, "More.RefineIdea")
+        except Exception as e:
+            cli.error(str(e))
+            Patch.rollback()
 
         cli.endLoading()
         cli.command(f"code {self.cwd}/.md", False, True)
