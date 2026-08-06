@@ -102,7 +102,12 @@ class index:
             cli.error("Localhost failed")
             return False
 
-        self.__init(hint)
+        try:
+            self.__init(hint)
+        except Exception as e:
+            cli.error(f"Initialization error: {e}")
+            return False
+
         self.__continue()
         self.__crons()
 
@@ -187,7 +192,18 @@ class index:
             VAR.styling = ""
 
             cli.setLoading("Working")
-            if not AISI.run(task, option):
+            try:
+                result = AISI.run(task, option)
+            except Exception as e:
+                cli.endLoading()
+                cli.error(f"Unexpected error during task execution: {e}")
+                Patch.rollback()
+                DB.rollback()
+                option = ""
+                task = ""
+                continue
+
+            if not result:
                 cli.endLoading()
                 cli.trace("Could not complete the task")
                 Patch.rollback()
