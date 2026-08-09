@@ -16,6 +16,13 @@ Audience: (name shortly, what category of people are best client base for this p
 Problem: (what problem is this project trying to solve? tell shortly);
 Solution: (how does this project solve described problem? describe shortly);
 
+**Usage**
+
+The user's step-by-step journey through this project:
+
+- (what user does and how? describe shortly);
+...
+
 **Pages**
 
 - welcome: (what is this page for? what features does it have? describe shortly);
@@ -27,13 +34,6 @@ Solution: (how does this project solve described problem? describe shortly);
 
 **Cron Jobs** (if needed)
 
-...
-
-**Usage**
-
-The user's step-by-step journey through this project:
-
-- (what user does and how? describe shortly);
 ...
 
 **Functionality**
