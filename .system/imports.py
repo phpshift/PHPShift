@@ -23,6 +23,7 @@ import subprocess
 import webbrowser
 import aisi as AISI
 
+from pathlib import Path
 from win32com.client import Dispatch  # !install
 from datetime import datetime, timezone
 from sqlalchemy.orm import sessionmaker
