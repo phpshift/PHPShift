@@ -355,6 +355,34 @@ class Help:
 
         return True
 
+    def webExtract(url="", selector=""):
+        import requests
+        from bs4 import BeautifulSoup
+
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        elements = soup.select(selector)
+
+        texts = []
+
+        for element in elements:
+            for tag in element(["script", "style", "noscript", "svg"]):
+                tag.decompose()
+
+            text = element.get_text(separator=" ", strip=True)
+
+            if text:
+                texts.append(text)
+
+        return "\n".join(texts)
+
     def gitHasRemote():
         return cli.command("git remote", True, True, Help.cwd, True).strip() != ""
 
