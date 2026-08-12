@@ -113,8 +113,14 @@ class index:
 
         task = ""
         option = ""
+        mode = ""
 
         while True:
+            # ── Mode selector (once per session, or after mode reset) ──────────
+            if not mode:
+                mode = cli.selection("Choose mode", ["Chat", "Manual"], True)
+
+            # ── Build skip list for skill selector ────────────────────────────
             skip = ["Render"]
             if self.__hasUnits():
                 skip.append("Create.Project")
@@ -169,6 +175,75 @@ class index:
             else:
                 skip.append("More.StopCrons")
 
+            # ── Text Chat mode ────────────────────────────────────────────────
+            if mode == "Chat":
+                # Always use the TextChat skill; skip the selector UI
+                option = "More.TextChat"
+                skip.append("More.TextChat")
+
+                print()
+                task = self.__message("You", True)
+                if task == ".":
+                    # "." exits back to mode selector
+                    mode = ""
+                    option = ""
+                    task = ""
+                    continue
+                DB.reserve()
+
+                Patch.new()
+                VAR.target = ""
+                VAR.styling = ""
+
+                cli.setLoading("Thinking")
+                try:
+                    result = AISI.run(task, option)
+                except Exception as e:
+                    cli.endLoading()
+                    cli.error(f"Unexpected error during task execution: {e}")
+                    Patch.rollback()
+                    DB.rollback()
+                    option = ""
+                    task = ""
+                    continue
+
+                cli.endLoading()
+
+                if not result:
+                    cli.trace("Could not complete the task")
+                    Patch.rollback()
+                    DB.rollback()
+                    option = ""
+                    task = ""
+                    continue
+
+                confirm = cli.selection(
+                    "Want to keep changes?", ["Yes", "Redo", "No", "Exit Chat"], True
+                )
+
+                if confirm == "Yes":
+                    Patch.confirm()
+                    DB.clear()
+                    self.__commit()
+                elif confirm == "Redo":
+                    Patch.rollback()
+                    DB.rollback()
+                    option = ""
+                    # keep task so user can refine
+                    continue
+                elif confirm == "No":
+                    Patch.rollback()
+                    DB.rollback()
+                elif confirm == "Exit Chat":
+                    Patch.rollback()
+                    DB.rollback()
+                    mode = ""
+
+                option = ""
+                task = ""
+                continue
+
+            # ── Manual Mode ───────────────────────────────────────────────────
             if not option:
                 option = AISI.skills(False, skip)
 
