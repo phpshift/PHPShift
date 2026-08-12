@@ -118,7 +118,11 @@ class index:
         while True:
             # ── Mode selector (once per session, or after mode reset) ──────────
             if not mode:
-                mode = cli.selection("Choose mode", ["Chat", "Manual"], True)
+                mode = cli.selection("Choose mode", ["Chat", "Manual", "Exit"], True)
+                if mode == "Exit" or not mode:
+                    self.stop()
+                    DB.close()
+                    sys.exit()
 
             # ── Build skip list for skill selector ────────────────────────────
             skip = ["Render"]
