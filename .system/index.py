@@ -118,11 +118,16 @@ class index:
         while True:
             # ── Mode selector (once per session, or after mode reset) ──────────
             if not mode:
-                mode = cli.selection("Choose mode", ["Chat", "Manual", "Exit"], True)
+                mode = cli.selection("Choose mode", ["Text Chat", "Voice Chat", "Manual", "Exit"], True)
                 if mode == "Exit" or not mode:
                     self.stop()
                     DB.close()
                     sys.exit()
+
+                if mode == "Voice Chat":
+                    cli.mode = "voice"
+                else:
+                    cli.mode = "text"
 
             # ── Build skip list for skill selector ────────────────────────────
             skip = ["Render"]
@@ -179,19 +184,39 @@ class index:
             else:
                 skip.append("More.StopCrons")
 
-            # ── Text Chat mode ────────────────────────────────────────────────
-            if mode == "Chat":
-                # Always use the TextChat skill; skip the selector UI
+            # ── Text Chat & Voice Chat modes ────────────────────────────────────
+            if mode in ["Text Chat", "Voice Chat", "TextChat", "VoiceChat"]:
+                # Always use the Text Chat skill; skip the selector UI
                 option = "More.TextChat"
                 skip.append("More.TextChat")
 
                 print()
-                task = self.__message("You", True)
+                if mode in ["Voice Chat", "VoiceChat"]:
+                    trigger = self.__listenForVoiceHotkey()
+                    if trigger == "TRIGGER":
+                        cli.info("Listening... Speak your message.")
+                        try:
+                            task = cli.listen()
+                        except Exception as e:
+                            cli.trace(f"Voice input error: {e}")
+                            task = False
+
+                        if task:
+                            cli.info(f"You (Voice): {task}")
+                        else:
+                            cli.trace("Voice input not recognized")
+                            continue
+                    else:
+                        task = trigger
+                else:
+                    task = self.__message("You", True)
+
                 if task == ".":
                     # "." exits back to mode selector
                     mode = ""
                     option = ""
                     task = ""
+                    cli.mode = "text"
                     continue
                 DB.reserve()
 
@@ -242,6 +267,7 @@ class index:
                     Patch.rollback()
                     DB.rollback()
                     mode = ""
+                    cli.mode = "text"
 
                 option = ""
                 task = ""
@@ -580,3 +606,48 @@ class index:
             return False
 
         return True
+
+    def __listenForVoiceHotkey(self):
+        import msvcrt
+        import keyboard
+
+        cli.info("Press [Ctrl + Alt + Space] to speak (or press '.' to exit voice mode)...")
+        typed_chars = []
+
+        while True:
+            try:
+                if keyboard.is_pressed("ctrl+alt+space"):
+                    while keyboard.is_pressed("ctrl+alt+space"):
+                        time.sleep(0.05)
+                    return "TRIGGER"
+            except Exception:
+                pass
+
+            if msvcrt.kbhit():
+                ch = msvcrt.getch()
+                if ch in [b"\r", b"\n"]:
+                    text = "".join(typed_chars).strip()
+                    sys.stdout.write("\n")
+                    sys.stdout.flush()
+                    return text if text else "."
+                elif ch in [b"\x1b", b"\x03"]:
+                    sys.stdout.write("\n")
+                    sys.stdout.flush()
+                    return "."
+                elif ch == b"\x08":
+                    if typed_chars:
+                        typed_chars.pop()
+                        sys.stdout.write("\b \b")
+                        sys.stdout.flush()
+                else:
+                    try:
+                        char_str = ch.decode("utf-8", errors="ignore")
+                        if char_str:
+                            typed_chars.append(char_str)
+                            sys.stdout.write(char_str)
+                            sys.stdout.flush()
+                    except Exception:
+                        pass
+
+            time.sleep(0.05)
+

@@ -8,21 +8,21 @@ class MoreTextChat:
     def run(self, message="", project="", skill=""):
         # Reset chat history on first execution of PHPShift startup
         if not MoreTextChat._history_initialized:
-            self.__resetChatHistory()
+            self.__resetChatHistory(project)
             MoreTextChat._history_initialized = True
 
         if not message or not message.strip():
-            cli.error("Message is required for TextChat")
+            cli.error("Message is required for Text Chat")
             return False
 
         # Load existing chat history
-        history = self.__loadChatHistory()
+        history = self.__loadChatHistory(project)
 
         # Run AI thinker to determine category and execution plan
         decision = self.__think(message, history)
         category = decision.get("category", "General")
 
-        cli.trace(f"TextChat category: {category}")
+        cli.trace(f"Text Chat category: {category}")
 
         action_log = []
 
@@ -43,11 +43,12 @@ class MoreTextChat:
 
             print()
             cli.info("PHPShift: " + reply)
+            self.__speakResponse(reply)
             print()
 
             history.append({"role": "user", "content": message})
             history.append({"role": "assistant", "content": reply})
-            self.__saveChatHistory(history)
+            self.__saveChatHistory(history, project)
             return True
 
         # ── 2. Building Mode ─────────────────────────────────────────────────
@@ -59,7 +60,7 @@ class MoreTextChat:
 
             if not skills_queue:
                 cli.trace("No building skills identified; falling back to general reply")
-                return self.__handleGeneralFallback(message, history)
+                return self.__handleGeneralFallback(message, history, project)
 
             for step in skills_queue:
                 chosen_skill = step.get("skill", "").strip()
@@ -83,11 +84,12 @@ class MoreTextChat:
 
             print()
             cli.info("PHPShift: " + final_reply)
+            self.__speakResponse(final_reply)
             print()
 
             history.append({"role": "user", "content": message})
             history.append({"role": "assistant", "content": final_reply})
-            self.__saveChatHistory(history)
+            self.__saveChatHistory(history, project)
             return True
 
         # ── 3. Fixing Mode (Mandatory More.FixProblem) ───────────────────────
@@ -123,11 +125,12 @@ class MoreTextChat:
 
             print()
             cli.info("PHPShift: " + final_reply)
+            self.__speakResponse(final_reply)
             print()
 
             history.append({"role": "user", "content": message})
             history.append({"role": "assistant", "content": final_reply})
-            self.__saveChatHistory(history)
+            self.__saveChatHistory(history, project)
             return True
 
         return True
@@ -205,7 +208,7 @@ class MoreTextChat:
 
         return {"category": "General", "reply": raw, "skills": []}
 
-    def __handleGeneralFallback(self, message="", history=[]):
+    def __handleGeneralFallback(self, message="", history=[], project=""):
         cli.setLoading("Generating reply")
         prompt = (
             f"Conversation History:\n{self.__formatHistoryForPrompt(history)}\n\n"
@@ -216,12 +219,20 @@ class MoreTextChat:
 
         print()
         cli.info("PHPShift: " + reply)
+        self.__speakResponse(reply)
         print()
 
         history.append({"role": "user", "content": message})
         history.append({"role": "assistant", "content": reply})
-        self.__saveChatHistory(history)
+        self.__saveChatHistory(history, project)
         return True
+
+    def __speakResponse(self, text=""):
+        if getattr(cli, "mode", "text") == "voice" and text and text.strip():
+            try:
+                cli.speak(text.strip())
+            except Exception as e:
+                cli.trace(f"Speech output error: {e}")
 
     def __composeSummaryReply(self, message="", history=[], action_log=[]):
         actions_summary = "\n".join(action_log) if action_log else "Executed requested task."
@@ -276,22 +287,20 @@ class MoreTextChat:
         return file_tree, log_content
 
     ####################################################################################// Chat History Persistence
-    def __getChatFilePath(self):
-        app_path = Help.app if Help.app else os.getcwd()
-        system_dir = os.path.join(app_path, ".system")
-        os.makedirs(system_dir, exist_ok=True)
-        return os.path.join(system_dir, "chat.json")
+    def __getChatFilePath(self, project=""):
+        proj_dir = project if (project and os.path.exists(project)) else (Help.cwd if Help.cwd else os.getcwd())
+        return os.path.join(proj_dir, ".system/chat.json").replace("\\", "/")
 
-    def __resetChatHistory(self):
-        file_path = self.__getChatFilePath()
+    def __resetChatHistory(self, project=""):
+        file_path = self.__getChatFilePath(project)
         try:
             cli.write(file_path, json.dumps([], indent=2))
             cli.trace(f"Chat history reset: {file_path}")
         except Exception as e:
             cli.trace(f"Could not reset chat history: {e}")
 
-    def __loadChatHistory(self):
-        file_path = self.__getChatFilePath()
+    def __loadChatHistory(self, project=""):
+        file_path = self.__getChatFilePath(project)
         if not os.path.exists(file_path):
             return []
         try:
@@ -304,8 +313,8 @@ class MoreTextChat:
             cli.trace(f"Could not load chat history: {e}")
             return []
 
-    def __saveChatHistory(self, history):
-        file_path = self.__getChatFilePath()
+    def __saveChatHistory(self, history, project=""):
+        file_path = self.__getChatFilePath(project)
         try:
             cli.write(file_path, json.dumps(history, indent=2, ensure_ascii=False))
             cli.trace(f"Saved chat history to {file_path}")

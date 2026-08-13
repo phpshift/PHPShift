@@ -4,9 +4,10 @@
 !.system/sessions/x.placeholder
 .system/storage/*
 !.system/storage/x.placeholder
-.system/vendor/
+.system/chat.json
 .system/backup.sql
 .system/patch.json
+.system/vendor/
 /project.zip
 /project.sql
 /summary.md
