@@ -28,15 +28,38 @@ class MoreTextChat:
 
         # ── 1. General Mode ──────────────────────────────────────────────────
         if category == "General":
-            reply = decision.get("reply", "").strip()
-            if not reply:
-                cli.setLoading("Generating reply")
-                prompt = (
-                    f"Conversation History:\n{self.__formatHistoryForPrompt(history)}\n\n"
-                    f"User Message:\n{message}\n\n"
-                    "Provide a helpful, friendly, and concise response to the user."
-                )
-                reply = AISI.REPLY(prompt).strip()
+            skills_queue = decision.get("skills", [])
+
+            if skills_queue:
+                for step in skills_queue:
+                    chosen_skill = step.get("skill", "").strip()
+                    step_message = step.get("message", message).strip() or message
+
+                    cli.setLoading(f"Running: {chosen_skill}")
+                    cli.trace(f"Executing info skill: {chosen_skill} | message: {step_message}")
+
+                    try:
+                        res = AISI.run(step_message, chosen_skill)
+                        if res:
+                            action_log.append(f"Ran '{chosen_skill}' — Result:\n{str(res)}")
+                        else:
+                            action_log.append(f"Ran '{chosen_skill}' — completed.")
+                    except Exception as e:
+                        action_log.append(f"Ran '{chosen_skill}' — error: {e}")
+                        cli.error(f"Skill '{chosen_skill}' error: {e}")
+
+                cli.setLoading("Composing response")
+                reply = self.__composeInfoReply(message, history, action_log)
+            else:
+                reply = decision.get("reply", "").strip()
+                if not reply:
+                    cli.setLoading("Generating reply")
+                    prompt = (
+                        f"Conversation History:\n{self.__formatHistoryForPrompt(history)}\n\n"
+                        f"User Message:\n{message}\n\n"
+                        "Provide a helpful, friendly, and concise response to the user."
+                    )
+                    reply = AISI.REPLY(prompt).strip()
 
             if not reply:
                 reply = "I understand your message. How else can I assist you with your PHPShift project?"
@@ -151,22 +174,25 @@ class MoreTextChat:
             f"User Message:\n\"{message}\"\n\n"
             f"Available Skills:\n{skills_formatted}\n\n"
             "Categorise the user request into exactly ONE of the three categories:\n"
-            "1. \"General\": The user is asking a general chat question, greeting, or seeking information/guidance that does not require building or fixing.\n"
-            "2. \"Building\": The user is describing the implementation of a new solution, feature, page, API, cron job, or improvement.\n"
-            "3. \"Fixing\": The user is describing a problem, bug, error, exception, or unexpected behavior in their application.\n\n"
+            "1. \"General\": The user is asking for information, asking to view/check logs (e.g. \"check my logs\"), view database/git status, seeking advice, asking questions, or general conversation.\n"
+            "   - If obtaining the requested information requires reading skills (e.g. \"Read.Log\", \"Read.Database\", \"Read.Git\", \"PHPShift.Documentation\"), select them in \"skills\".\n"
+            "   - If no skills are needed (pure Q&A or chat), set \"skills\" to [] and provide your answer in \"reply\".\n"
+            "2. \"Building\": The user is describing the implementation, creation, or modification of a new feature, page, API, cron job, styling, database schema, or improvement.\n"
+            "   - Select relevant building skill(s) from Available Skills in execution order with tailored instructions in \"skills\".\n"
+            "3. \"Fixing\": The user is explicitly reporting a broken feature, crash, error, or bug that needs to be REPAIRED/FIXED in the application codebase.\n"
+            "   - Set \"skills\" to []. (Fixing automatically executes More.FixProblem with collected project context).\n\n"
             "Return ONLY a JSON object with this exact structure:\n"
             "{\n"
             '  "category": "General" | "Building" | "Fixing",\n'
-            '  "reply": "Your complete helpful reply to the user if category is General, otherwise empty string",\n'
+            '  "reply": "Your direct answer if category is General and no skills are needed, otherwise empty string",\n'
             '  "skills": [\n'
             '    {"skill": "Skill.Name", "message": "Specific instruction to pass to that skill"}\n'
             '  ]\n'
             "}\n\n"
-            "Rules:\n"
-            "- For \"General\": Set category to \"General\", provide the complete response in \"reply\", set \"skills\" to [].\n"
-            "- For \"Building\": Set category to \"Building\", set \"reply\" to \"\", select relevant skill(s) from Available Skills in execution order with tailored instructions in \"skills\".\n"
-            "- For \"Fixing\": Set category to \"Fixing\", set \"reply\" to \"\", set \"skills\" to [].\n"
-            "- Return ONLY raw valid JSON. Do NOT include markdown code fences or extra commentary."
+            "CRITICAL CATEGORY RULES:\n"
+            "- Requests to view, inspect, check, or analyze logs or data (e.g. \"check my logs\", \"show database tables\", \"check git status\") MUST be categorised as \"General\" with the corresponding Read skill in \"skills\" (e.g. \"Read.Log\"). Do NOT classify information requests as \"Fixing\".\n"
+            "- ONLY classify a message as \"Fixing\" if the user explicitly asks to fix/repair a bug, error, or broken code.\n"
+            "- Output ONLY valid raw JSON. Do NOT include markdown code fences or commentary."
         )
 
         raw = AISI.REPLY(thinker_prompt)
@@ -233,6 +259,26 @@ class MoreTextChat:
                 cli.speak(text.strip())
             except Exception as e:
                 cli.trace(f"Speech output error: {e}")
+
+    def __composeInfoReply(self, message="", history=[], action_log=[]):
+        results_summary = "\n".join(action_log) if action_log else "No specific data collected."
+        history_formatted = self.__formatHistoryForPrompt(history)
+
+        reply_prompt = (
+            "You are a helpful AI assistant integrated into the PHPShift development tool.\n"
+            "You have executed one or more information-gathering skills to answer the user's request.\n"
+            "Analyse the collected information and provide a clear, helpful response to the user.\n\n"
+            f"Chat History:\n{history_formatted}\n\n"
+            f"User's Question:\n{message}\n\n"
+            f"Execution Results:\n{results_summary}\n\n"
+            "Rules:\n"
+            "- Be direct, friendly, and clear.\n"
+            "- Explain what was found in the logs/data clearly and highlight any key findings, errors, or answers.\n"
+            "- Keep the response well-structured and easy to read."
+        )
+
+        reply = AISI.REPLY(reply_prompt)
+        return reply.strip() if reply and reply.strip() else "Information gathered successfully."
 
     def __composeSummaryReply(self, message="", history=[], action_log=[]):
         actions_summary = "\n".join(action_log) if action_log else "Executed requested task."
