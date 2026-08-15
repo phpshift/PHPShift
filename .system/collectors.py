@@ -21,13 +21,14 @@ class Collectors:
             f"{project}/Apis",
             f"{project}/Crons",
             f"{project}/Pages",
+            f"{project}/Space",
         ]
 
-        for dir in dirs:
-            for root, _, filenames in os.walk(dir):
-                if filename[:2] == "x.":
-                    continue
+        for each in dirs:
+            for root, _, filenames in os.walk(each):
                 for filename in filenames:
+                    if filename[:2] == "x.":
+                        continue
                     path = f"{root}/{filename}".replace(project + "/", "")
                     files.append(path.replace("\\", "/"))
 
@@ -94,6 +95,73 @@ class Collectors:
                                     docblock = ""
 
         return AISI.format("php", collection.strip(), "No methods detected.")
+
+    def moduleMethods(self, message="", project="", skill=""):
+        cli.trace("Loading module methods")
+
+        collection = ""
+        space_dir = f"{project}/Space"
+
+        if not os.path.exists(space_dir):
+            return AISI.format("php", collection.strip(), "No methods detected.")
+
+        for root, dirs, files in os.walk(space_dir):
+            dirs[:] = [d for d in dirs if d != "vendor"]
+            for file in files:
+                if not file.endswith(".php"):
+                    continue
+
+                class_name = ""
+                file_path = os.path.join(root, file)
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+
+                docblock = ""
+                in_docblock = False
+
+                for line in lines:
+                    stripped = line.strip()
+
+                    if stripped.startswith("class "):
+                        class_name = stripped.replace("class ", "").strip()
+                        class_name = class_name.split(" ")[0].split("{")[0].strip()
+                        if class_name.startswith("Module"):
+                            class_name = class_name[len("Module") :]
+
+                    if stripped.startswith("/**"):
+                        in_docblock = True
+                        docblock += stripped.replace("/**", "{{METHOD}}")
+                    elif in_docblock and stripped.startswith("*/"):
+                        in_docblock = False
+                    elif in_docblock:
+                        if stripped.startswith("*"):
+                            stripped = stripped[1:].lstrip()
+                        docblock += "\n" + stripped
+                    elif stripped.startswith(
+                        "public static function "
+                    ) or stripped.startswith("public function "):
+                        if docblock and class_name:
+                            is_static = "static" in stripped
+                            after_fn = stripped.split("function ", 1)[1]
+                            method_name = after_fn.split("(", 1)[0].strip()
+                            args = ""
+                            if "(" in after_fn and ")" in after_fn:
+                                args = (
+                                    after_fn.split("(", 1)[1].split(")", 1)[0].strip()
+                                )
+                            args_display = f"({args})" if args != "" else "()"
+                            method_declaration = (
+                                f"{class_name}::" if is_static else f"{class_name}->"
+                            ) + f"{method_name}{args_display}"
+                            collection += (
+                                "\n\n# "
+                                + docblock.replace(
+                                    "{{METHOD}}", method_declaration.strip()
+                                ).strip()
+                            )
+                            docblock = ""
+
+        return AISI.format("md", collection.strip(), "No methods detected.")
 
     def jsMethods(self, message="", project="", skill=""):
         cli.trace("Loading JavaScript methods")
