@@ -65,35 +65,45 @@ class Help:
 
         if "db.sql" in page_code and page_code["db.sql"].strip() != "":
             sql_file = os.path.join(page_path, "db.sql")
-            if not internal and os.path.exists(sql_file):
-                cli.command("code " + sql_file, False, True)
-                if (
-                    cli.selection("Confirm to update database", ["Go", "No"], True)
-                    == "Go"
-                ):
-                    cli.trace("Updating database")
-                    DB.submit(page_code["db.sql"])
+            if not internal:
+                Help.executeDatabaseFile(sql_file)
             cli.trace("Deleting SQL file")
             os.remove(sql_file)
 
         if "code.php" in page_code and page_code["code.php"].strip() != "":
-            envars = Help.extractEnvVars(page_code["code.php"])
-            if len(envars) > 0:
-                for envar in envars:
-                    cli.trace(f"Adding environment variable '{envar}'")
-                    Help.addEnv(envar, "")
+            Help.extractEnvVars(page_code["code.php"], True)
 
         plugins = config.get("composer-plugins", [])
+        Help.installComposerModules(plugins)
+
+        return True
+
+    def executeDatabaseFile(path):
+        if not os.path.exists(path):
+            return False
+
+        cli.command("code " + path, False, True)
+        if cli.selection("Confirm to update database", ["Go", "No"], True) == "Go":
+            cli.trace("Updating database")
+            DB.submit(cli.read(path))
+
+        cli.trace("Deleting SQL file")
+        os.remove(path)
+
+        return True
+
+    def installComposerModules(names):
         existing_plugins = list(
             json.loads(cli.read(f"{Help.cwd}/.system/composer.json") or "{}")
             .get("require", {})
             .keys()
         )
 
-        if len(plugins) > 0:
-            for plugin in plugins:
+        if len(names) > 0:
+            installed = []
+            for plugin in names:
                 plugin = plugin.strip()
-                if plugin in existing_plugins:
+                if plugin in existing_plugins or plugin in installed:
                     continue
                 if (
                     cli.selection(
@@ -110,6 +120,7 @@ class Help:
                     cli.command(
                         "composer require " + plugin, True, True, Help.cwd + "/.system"
                     )
+                    installed.append(plugin)
 
         return True
 
@@ -123,15 +134,24 @@ class Help:
 
         return re.search(pattern, content) is not None
 
-    def extractEnvVars(content):
+    def extractEnvVars(content, register=False):
         pattern = r"""App::env\(\s*      # App::env(
                       ['"]                # opening quote
                       ([^'"]+)            # capture variable name
                       ['"]                # closing quote
                    """
         matches = re.findall(pattern, content, re.VERBOSE)
+        envars = sorted(set(matches))
 
-        return sorted(set(matches))
+        if not register:
+            return envars
+
+        if len(envars) > 0:
+            for envar in envars:
+                cli.trace(f"Adding environment variable '{envar}'")
+                Help.addEnv(envar, "")
+
+        return envars
 
     def selectAPI():
         if not Help.cwd:
@@ -359,9 +379,7 @@ class Help:
         import requests
         from bs4 import BeautifulSoup
 
-        headers = {
-            "User-Agent": "Mozilla/5.0"
-        }
+        headers = {"User-Agent": "Mozilla/5.0"}
 
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
