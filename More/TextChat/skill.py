@@ -31,15 +31,31 @@ class MoreTextChat:
             skills_queue = decision.get("skills", [])
 
             if skills_queue:
+                step_memory = []
                 for step in skills_queue:
                     chosen_skill = step.get("skill", "").strip()
                     step_message = step.get("message", message).strip() or message
+
+                    enriched_step_message = step_message
+                    memory_context = self.__formatExecutionMemory(step_memory)
+                    if memory_context:
+                        enriched_step_message = (
+                            f"{memory_context}\n\n"
+                            f"[Current Step Task for '{chosen_skill}']:\n"
+                            f"{step_message}"
+                        )
 
                     cli.setLoading(f"Running: {chosen_skill}")
                     cli.trace(f"Executing info skill: {chosen_skill} | message: {step_message}")
 
                     try:
-                        res = AISI.run(step_message, chosen_skill)
+                        res = AISI.run(enriched_step_message, chosen_skill)
+                        step_memory.append({
+                            "skill": chosen_skill,
+                            "message": step_message,
+                            "result": res
+                        })
+
                         if res:
                             action_log.append(f"Ran '{chosen_skill}' — Result:\n{str(res)}")
                         else:
@@ -85,17 +101,36 @@ class MoreTextChat:
                 cli.trace("No building skills identified; falling back to general reply")
                 return self.__handleGeneralFallback(message, history, project)
 
+            step_memory = []
             for step in skills_queue:
                 chosen_skill = step.get("skill", "").strip()
                 step_message = step.get("message", message).strip() or message
+
+                # Dynamically enrich step instruction with memory/outputs of prior steps
+                enriched_step_message = step_message
+                memory_context = self.__formatExecutionMemory(step_memory)
+                if memory_context:
+                    enriched_step_message = (
+                        f"{memory_context}\n\n"
+                        f"[Current Step Task for '{chosen_skill}']:\n"
+                        f"{step_message}\n\n"
+                        "Note: Integrate directly with the previously generated code, classes, and file paths shown above."
+                    )
 
                 cli.setLoading(f"Running: {chosen_skill}")
                 cli.trace(f"Executing building skill: {chosen_skill} | message: {step_message}")
 
                 try:
-                    res = AISI.run(step_message, chosen_skill)
+                    res = AISI.run(enriched_step_message, chosen_skill)
+                    step_memory.append({
+                        "skill": chosen_skill,
+                        "message": step_message,
+                        "result": res
+                    })
+
                     if res:
-                        action_log.append(f"Ran '{chosen_skill}' with message \"{step_message}\" — completed successfully.")
+                        summary = self.__summarizeResult(res)
+                        action_log.append(f"Ran '{chosen_skill}' with message \"{step_message}\" — completed successfully ({summary}).")
                     else:
                         action_log.append(f"Ran '{chosen_skill}' with message \"{step_message}\" — finished.")
                 except Exception as e:
@@ -299,6 +334,39 @@ class MoreTextChat:
 
         reply = AISI.REPLY(reply_prompt)
         return reply.strip() if reply and reply.strip() else "Task completed successfully."
+
+    def __formatExecutionMemory(self, memory=[]):
+        if not memory:
+            return ""
+
+        parts = ["--- In-Memory Execution Context (Outputs & Generated Code from Prior Steps in this Task) ---"]
+        for idx, item in enumerate(memory, 1):
+            skill_name = item.get("skill", "")
+            msg = item.get("message", "")
+            res = item.get("result", "")
+
+            part = f"Step {idx} [{skill_name}]:\nInstruction: {msg}\n"
+            if isinstance(res, dict):
+                part += "Generated Files & Code:\n"
+                for fname, fcontent in res.items():
+                    part += f"File '{fname}':\n```\n{str(fcontent)}\n```\n"
+            elif isinstance(res, str) and res.strip():
+                part += f"Generated Output / Code:\n```\n{res.strip()}\n```\n"
+            elif res:
+                part += "Status: Completed successfully.\n"
+            else:
+                part += "Status: Executed.\n"
+            parts.append(part)
+
+        return "\n".join(parts)
+
+    def __summarizeResult(self, res):
+        if isinstance(res, dict):
+            return "Generated files: " + ", ".join(res.keys())
+        elif isinstance(res, str) and res.strip():
+            lines = res.strip().splitlines()
+            return lines[0] if len(lines) == 1 else f"{len(lines)} lines generated"
+        return "Skill executed successfully"
 
     ####################################################################################// Project Context & Logs
     def __collectProjectInfo(self, project=""):
