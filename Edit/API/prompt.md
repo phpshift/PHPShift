@@ -19,6 +19,11 @@ This is the existing database schema:
 These are only available PHP methods that you can use:
 [[phpMethods]]
 
+# Available module methods
+
+These are available custom module methods that you can use:
+[[moduleMethods]]
+
 # API file example
 
 > Note: filename should be specified in camelCase;
