@@ -46,6 +46,15 @@ class CreateProject:
             if parts[-1] in ["README", "readme"]:
                 continue
 
+            if each.startswith("space/") and each.endswith(".php"):
+                unit, module = parts
+                cli.trace(f"Creating {unit} module '{module}'")
+                AISI.run(
+                    "Create new module, here is the description:\n\n" + files[each],
+                    "Create.Module",
+                )
+                pass
+
             if each.startswith("page/"):
                 unit, group, page = parts
                 cli.trace(f"Creating {unit} '{group}.{page}'")

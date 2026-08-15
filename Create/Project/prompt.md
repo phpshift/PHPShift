@@ -9,9 +9,10 @@ You have to consider these instructions to build fully functional complete websi
 Generate following complete functional files based on needs in this exact sequence:
 0. "README.md" - (mandatory) general overview of project's Goal, Pages (e.g page/public/edititem), APIs (e.g api/v1.editItem.php), Cron Jobs (e.g cron/updateItem.php) and Usage;
 1. "db.sql" - (if database needed) SQL file, full MySQL database schema for the requested project, with example records inserting at the end of SQL code after creating required schema, ready for execution to setup database by developer (skip database name creation);
-2. "page/{category_name}/{page_name}.md" - (strict format) Markdown file for category page (e.g page/public/edititem.md) describing required page's logic and brief technical functionality logic to know what Page does and how;
-3. "api/{api_version}.{api_name}.md" - (strict format) Markdown file for API service (e.g api/v1.editItem.md) describing required API service's logic and brief technical functionality logic to know what API does and how;
-4. "cron/{cron_name}.md" - (strict format) Markdown file for Cron job (e.g cron/updateItem.md) describing required Cron job's logic and brief technical functionality logic to know what Cron job does and how;
+2. "space/{moduleName}.php" - (strict camelCase format) PHP file, custom class module that could be used from any page, api or cron (if system requires custom global tool);
+3. "page/{category_name}/{page_name}.md" - (strict format) Markdown file for category page (e.g page/public/edititem.md) describing required page's logic and brief technical functionality logic to know what Page does and how;
+4. "api/{api_version}.{api_name}.md" - (strict format) Markdown file for API service (e.g api/v1.editItem.md) describing required API service's logic and brief technical functionality logic to know what API does and how;
+5. "cron/{cron_name}.md" - (strict format) Markdown file for Cron job (e.g cron/updateItem.md) describing required Cron job's logic and brief technical functionality logic to know what Cron job does and how;
 N. "..." - other Markdown files for another category pages as needed, describing required page's logic and technical functionality;
 
 You can use page categories like "public" (e.g page/public/page_name.md), "private" (e.g page/private/page_name.md) or another;
