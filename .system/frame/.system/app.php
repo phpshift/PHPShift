@@ -20,6 +20,29 @@ class Space
     {
         return App::path('Space/' . $path);
     }
+
+    /** (AI-USE) - Requires the global use PHP module class file from space, returns the instance if $construct = [pass class arguments is needed];
+     * Space::module('moduleName');
+     * or
+     * $obj = Space::module('moduleName', []);
+     * or
+     * $obj = Space::module('moduleName', ['arg1', 'arg2', ...]);
+     */
+    public static function module(string $name, null|array $construct = null)
+    {
+        if (empty($name)) return null;
+
+        $path = App::path('Space/' . $name . '.php');
+        if (!file_exists($path) || !is_readable($path)) return null;
+
+        require_once $path;
+
+        $class = 'Module' . ucfirst($name);
+        if (!class_exists($class)) return null;
+        if (is_null($construct)) return null;
+
+        return new $class(...$construct);
+    }
 }
 
 function category($name = '', $method = '')
@@ -51,8 +74,7 @@ class App
         self::$cron = php_sapi_name() == 'cli';
         self::$nonce = App::rand(23);
 
-        try
-        {
+        try {
             require_once 'session.php';
             Session::init(self::$cron);
 
@@ -79,8 +101,7 @@ class App
             require_once 'api.php';
             API::init('Apis', $request['get'], $request['post'], $request['json']);
 
-            if (isset($url['segments'][0]) && $url['segments'][0] == 'FILE' && count($url['segments']) == 2 && isset($url['segments'][1]) && !empty($url['segments'][1]))
-            {
+            if (isset($url['segments'][0]) && $url['segments'][0] == 'FILE' && count($url['segments']) == 2 && isset($url['segments'][1]) && !empty($url['segments'][1])) {
                 Storage::deliver($url['segments'][1]);
                 exit;
             }
@@ -89,8 +110,7 @@ class App
             self::$group = $this->detectGroup();
 
             $default = explode('/', self::env('PROJECT_LANDING'));
-            if (empty(self::$group))
-            {
+            if (empty(self::$group)) {
                 self::$page = isset($default[1]) ? $this->normalizePageSegment($default[1]) : '';
                 self::$group = $this->detectGroup();
             }
@@ -117,9 +137,7 @@ class App
             $html .= '<script nonce="' . self::$nonce . '">$(window).on("load", function() {App.loaded()});</script>';
 
             echo $html;
-        }
-        catch (Throwable $e)
-        {
+        } catch (Throwable $e) {
             self::error($e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ')');
             exit;
         }
@@ -131,19 +149,15 @@ class App
         ini_set('expose_php', 'Off');
         ini_set('display_errors', '0');
         ini_set('error_log', __DIR__ . '/error.log');
-        set_error_handler(function ($severity, $message, $file, $line)
-        {
+        set_error_handler(function ($severity, $message, $file, $line) {
             throw new ErrorException($message, 0, $severity, $file, $line);
         });
-        set_exception_handler(function ($e)
-        {
+        set_exception_handler(function ($e) {
             self::error($e->getMessage());
         });
-        register_shutdown_function(function ()
-        {
+        register_shutdown_function(function () {
             $error = error_get_last();
-            if ($error !== null)
-            {
+            if ($error !== null) {
                 self::error($error['message']);
             }
         });
@@ -285,8 +299,7 @@ class App
         if ($value !== false) return $value;
 
         $env = parse_ini_file(__DIR__ . '/../.env', false, INI_SCANNER_RAW);
-        foreach ($env as $key => $value)
-        {
+        foreach ($env as $key => $value) {
             putenv("$key=$value");
         }
 
@@ -305,16 +318,14 @@ class App
 
     public static function decrypt($text = '', $key = '')
     {
-        set_error_handler(function ($errno, $errstr)
-        {
+        set_error_handler(function ($errno, $errstr) {
             throw new Exception("OpenSSL Error: $errstr");
             die('Adct');
         });
 
         $encryptionKey = base64_decode($key);
         $ex = explode(':', $text, 3);
-        if (count((array)$ex) < 3)
-        {
+        if (count((array)$ex) < 3) {
             restore_error_handler();
             return '';
         }
@@ -322,13 +333,10 @@ class App
         list($encryptedData, $iv, $tag) = $ex;
 
         $result = null;
-        try
-        {
+        try {
             $result = openssl_decrypt($encryptedData, 'aes-256-gcm', $encryptionKey, 0, base64_decode($iv), base64_decode($tag));
             restore_error_handler();
-        }
-        catch (Exception $e)
-        {
+        } catch (Exception $e) {
             self::error($e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ')');
             exit;
         }
@@ -408,8 +416,7 @@ class App
     {
         $folder = self::path('Space');
         $collect = [];
-        foreach (scandir($folder) as $file)
-        {
+        foreach (scandir($folder) as $file) {
             if (!str_starts_with($file, "lng.") || !str_ends_with($file, ".json")) continue;
             $data = json_decode(file_get_contents($folder . '/' . $file), true);
             $collect[str_replace(["lng.", ".json"], "", $file)] = $this->escapeTranslations($data);
@@ -420,18 +427,15 @@ class App
 
     private function escapeTranslations($data)
     {
-        if (is_array($data))
-        {
+        if (is_array($data)) {
             $escaped = [];
-            foreach ($data as $key => $value)
-            {
+            foreach ($data as $key => $value) {
                 $escaped[$key] = $this->escapeTranslations($value);
             }
             return $escaped;
         }
 
-        if (is_string($data))
-        {
+        if (is_string($data)) {
             return htmlspecialchars($data, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
 
@@ -440,28 +444,23 @@ class App
 
     private static function sanitizeResponseData($data)
     {
-        if (is_array($data))
-        {
+        if (is_array($data)) {
             $sanitized = [];
-            foreach ($data as $key => $value)
-            {
+            foreach ($data as $key => $value) {
                 $sanitized[$key] = self::sanitizeResponseData($value);
             }
             return $sanitized;
         }
 
-        if (is_object($data))
-        {
+        if (is_object($data)) {
             $sanitized = new stdClass();
-            foreach ($data as $key => $value)
-            {
+            foreach ($data as $key => $value) {
                 $sanitized->{$key} = self::sanitizeResponseData($value);
             }
             return $sanitized;
         }
 
-        if (is_string($data))
-        {
+        if (is_string($data)) {
             return htmlspecialchars($data, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
 
@@ -523,8 +522,7 @@ class App
         $parts = parse_url($url);
         $segments = [];
 
-        if (!empty($parts['path']))
-        {
+        if (!empty($parts['path'])) {
             $segments = array_values(
                 array_filter(explode('/', trim($parts['path'], '/')))
             );
@@ -544,39 +542,30 @@ class App
         static $data = null;
         if ($data !== null) return $data;
 
-        $cleanArray = function (array $source)
-        {
+        $cleanArray = function (array $source) {
             $clean = [];
-            foreach ($source as $key => $value)
-            {
+            foreach ($source as $key => $value) {
                 $safeKey = preg_replace('/[^a-zA-Z0-9_\-]/', '', $key);
                 if ($safeKey === '') continue;
 
-                if (is_array($value))
-                {
-                    $clean[$safeKey] = array_map(function ($v)
-                    {
+                if (is_array($value)) {
+                    $clean[$safeKey] = array_map(function ($v) {
                         return $this->cleanRequestValue($v);
                     }, $value);
-                }
-                else
-                {
+                } else {
                     $clean[$safeKey] = $this->cleanRequestValue($value);
                 }
             }
             return $clean;
         };
 
-        $cleanFiles = function (array $files)
-        {
+        $cleanFiles = function (array $files) {
             $clean = [];
-            foreach ($files as $key => $file)
-            {
+            foreach ($files as $key => $file) {
                 $safeKey = preg_replace('/[^a-zA-Z0-9_\-]/', '', $key);
                 if ($safeKey === '') continue;
 
-                if (is_array($file['name']))
-                {
+                if (is_array($file['name'])) {
                     $clean[$safeKey] = [
                         'name' => array_map([$this, 'cleanFileName'], $file['name']),
                         'type' => $file['type'],
@@ -584,9 +573,7 @@ class App
                         'error' => $file['error'],
                         'size' => $file['size']
                     ];
-                }
-                else
-                {
+                } else {
                     $clean[$safeKey] = [
                         'name' => $this->cleanFileName($file['name']),
                         'type' => $file['type'],
@@ -602,11 +589,9 @@ class App
         $raw = file_get_contents('php://input');
         $jsonData = [];
 
-        if (!empty($raw) && !str_starts_with($raw, 'system-call='))
-        {
+        if (!empty($raw) && !str_starts_with($raw, 'system-call=')) {
             $decoded = json_decode($raw, true);
-            if (json_last_error() !== JSON_ERROR_NONE)
-            {
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 header('Content-Type: application/json', true, 400);
                 self::sendResponse(true, 'Invalid JSON request body', []);
             }
@@ -662,8 +647,7 @@ class App
         ]);
 
         $detected = "";
-        foreach ($items as $x)
-        {
+        foreach ($items as $x) {
             [$group, $page] = explode('.', $x);
 
             $path = "{$folder}/{$group}." . self::$page . '/code.php';
@@ -687,8 +671,7 @@ class App
         if (!is_file($file) || !file_exists($file) || !is_readable($file)) return '';
 
         $type = pathinfo($file, PATHINFO_EXTENSION);
-        if ($type == 'html')
-        {
+        if ($type == 'html') {
             $content = file_get_contents($file);
             // Add nonce to inline scripts and styles
             $content = preg_replace('/<script([^>]*?)>/', '<script$1 nonce="' . $nonce . '">', $content);
@@ -745,8 +728,7 @@ class App
 
         $reflection = new ReflectionClass($class);
         $methods = [];
-        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method)
-        {
+        foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isConstructor() || $method->isStatic()) continue;
             if ($method->getDeclaringClass()->getName() !== $class) continue;
 
