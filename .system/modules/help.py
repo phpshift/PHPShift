@@ -202,6 +202,23 @@ class Help:
 
         return page
 
+    def selectModule():
+        if not Help.cwd:
+            return ""
+
+        modules = []
+        for module in os.listdir(f"{Help.cwd}/Space"):
+            if module in ["x.placeholder"] or not module[-4:] == ".php":
+                continue
+            modules.append(module[:-4])
+        modules.append("[Back]")
+
+        module = cli.selection("Select module", modules, True)
+        if module == "[Back]":
+            return ""
+
+        return module + ".php"
+
     def updateSitemap():
         base = os.path.dirname(os.path.dirname(__file__)) + "/frame/.assets/sitemap.xml"
         if not os.path.exists(base):
