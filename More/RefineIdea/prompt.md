@@ -23,6 +23,12 @@ The user's step-by-step journey through this project:
 - (what user does and how? describe shortly);
 ...
 
+**Modules** (if needed)
+
+...
+
+> Modules are dedicated purpose global PHP classes, that might be used in Pages, APIs and Crones;
+
 **Pages**
 
 - welcome: (what is this page for? what features does it have? describe shortly);
