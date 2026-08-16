@@ -52,6 +52,7 @@ class Collectors:
         )
 
         if page:
+            page = page.replace("/", ".")
             styling = cli.read(f"{project}/Pages/{page}/style.css")
 
         return AISI.format("css", styling, "Styling not provided.")
