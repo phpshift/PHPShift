@@ -118,14 +118,16 @@ class index:
         while True:
             # ── Mode selector (once per session, or after mode reset) ──────────
             if not mode:
-                mode = cli.selection("Choose mode", ["Text Chat", "Voice Chat", "Manual", "Exit"], True)
-                if mode == "Exit" or not mode:
+                mode = cli.selection("Choose mode", ["Text Chat", "Voice Chat", "Hybrid", "Manual", "[Exit]"], True)
+                if mode == "[Exit]" or not mode:
                     self.stop()
                     DB.close()
                     sys.exit()
 
                 if mode == "Voice Chat":
                     cli.mode = "voice"
+                elif mode == "Hybrid":
+                    cli.mode = "hybrid"
                 else:
                     cli.mode = "text"
 
@@ -184,8 +186,8 @@ class index:
             else:
                 skip.append("More.StopCrons")
 
-            # ── Text Chat & Voice Chat modes ────────────────────────────────────
-            if mode in ["Text Chat", "Voice Chat", "TextChat", "VoiceChat"]:
+            # ── Text Chat, Voice Chat & Hybrid modes ───────────────────────────
+            if mode in ["Text Chat", "Voice Chat", "Hybrid", "TextChat", "VoiceChat", "HybridChat"]:
                 # Always use the Text Chat skill; skip the selector UI
                 option = "More.TextChat"
                 skip.append("More.TextChat")
@@ -247,7 +249,7 @@ class index:
                     continue
 
                 confirm = cli.selection(
-                    "Want to keep changes?", ["Yes", "Redo", "No", "Exit Chat"], True
+                    "Want to keep changes?", ["Yes", "Redo", "No", "[Exit]"], True
                 )
 
                 if confirm == "Yes":
@@ -263,7 +265,7 @@ class index:
                 elif confirm == "No":
                     Patch.rollback()
                     DB.rollback()
-                elif confirm == "Exit Chat":
+                elif confirm == "[Exit]":
                     Patch.rollback()
                     DB.rollback()
                     mode = ""

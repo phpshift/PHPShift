@@ -289,7 +289,7 @@ class MoreTextChat:
         return True
 
     def __speakResponse(self, text=""):
-        if getattr(cli, "mode", "text") == "voice" and text and text.strip():
+        if getattr(cli, "mode", "text") in ["voice", "hybrid"] and text and text.strip():
             try:
                 cli.speak(text.strip())
             except Exception as e:
