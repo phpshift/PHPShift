@@ -81,9 +81,10 @@ class MoreTextChat:
                 reply = "I understand your message. How else can I assist you with your PHPShift project?"
 
             print()
+            cli.unline()
             cli.info("PHPShift: " + reply)
             self.__speakResponse(reply)
-            print()
+            cli.unline()
 
             history.append({"role": "user", "content": message})
             history.append({"role": "assistant", "content": reply})

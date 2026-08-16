@@ -49,6 +49,8 @@ class PHPShiftResetProject:
         if not self.__patchEnv(project):
             return False
 
+        DB.reset(DB.name())
+
         return True
 
     def __remove_path(self, path, project, keep_files):
