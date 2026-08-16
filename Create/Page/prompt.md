@@ -17,6 +17,9 @@ This is the existing database schema:
 # Existing project files
 [[files]]
 
+# Reference page's structure and design
+[[referencePage]]
+
 # Available CSS design example
 [[styling]]
 
@@ -71,6 +74,7 @@ These are rules to follow:
 - In HTML code use 'src=""' instead of 'src="#"' if blank 'src' attribute is used;
 - In CSS code you must style entire HTML page as requested;
 - If CSS design example is provided, create same CSS design for new HTML code (for the full page);
+- If a reference page (HTML structure and CSS design) is provided, use its visual and structural layout patterns as reference for generating the new page;
 - In jQuery JavaScript code always use JS method App.call(request_url, php_method, data, code) to submit or retrieve data using PHP methods;
 - In jQuery JavaScript code App.call(...) usage example App.call("items", "getItems", {id: 3}, (echo)=>{ console.log(echo) });
 - PHP code is PHP class named using page's name and prefix 'Page' in PascalCase (e.g 'PageEditItem', not 'EditItem', not 'edititem', not 'edit_item', but 'PageEditItem');

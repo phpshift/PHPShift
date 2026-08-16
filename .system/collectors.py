@@ -57,6 +57,38 @@ class Collectors:
 
         return AISI.format("css", styling, "Styling not provided.")
 
+    def referencePage(self, message="", project="", skill=""):
+        cli.trace("Loading reference page HTML and CSS")
+
+        page = getattr(VAR, "reference", "") or getattr(VAR, "styling", "")
+        if not page:
+            return AISI.format("", "", "Reference page not provided.")
+
+        cli.trace("Loading reference page: " + page)
+        page = page.replace("/", ".")
+        folder = f"{project}/Pages/{page}"
+        if not os.path.exists(folder):
+            return AISI.format("", "", "Reference page not found.")
+
+        html_content = cli.read(f"{folder}/page.html").strip()
+        css_content = cli.read(f"{folder}/style.css").strip()
+
+        output = []
+        if html_content:
+            output.append(
+                f"HTML reference structure (`page.html`):\n```html\n{html_content}\n```"
+            )
+        if css_content:
+            output.append(
+                f"CSS reference styles (`style.css`):\n```css\n{css_content}\n```"
+            )
+
+        if not output:
+            return AISI.format("", "", "Reference page HTML and CSS not found.")
+
+        return AISI.format("", "\n\n".join(output), "Reference page not provided.")
+
+
     def phpMethods(self, message="", project="", skill=""):
         cli.trace("Loading PHP methods")
 

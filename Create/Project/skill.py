@@ -15,7 +15,6 @@ class CreateProject:
             return {}
 
         config = json.loads(files.get("config.json", "{}"))
-        reference = config.get("reference-page", "").strip()
         VAR.styling = config.get("landing-page", "").strip()
         if not VAR.styling:
             return {}
@@ -69,8 +68,6 @@ class CreateProject:
                     },
                     "Render.Page",
                 )
-                if reference == f"{group}/{page}".strip():
-                    VAR.styling = reference
                 pass
 
             if each.startswith("api/"):

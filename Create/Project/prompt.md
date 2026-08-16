@@ -23,8 +23,7 @@ Then you must generate only the necessary Pages, APIs and Cron jobs, to meet reu
 
 N. "config.json" - (mandatory) This is the last file. Do not change this JSON data keys, you must set values for them and return as JSON file:
 {
-    "landing-page": Main visitor facing group page (e.g "public.welcome"),
-    "reference-page": Main user facing group page that should be visual/structural reference for all other internal pages (e.g "private/dashboard")
+    "landing-page": Main visitor facing group page (e.g "public.welcome")
 }
 
 # Rules to follow
