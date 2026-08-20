@@ -21,7 +21,7 @@ class CreateProject:
 
         cli.trace("Configuring landing page")
 
-        Help.setEnv("PROJECT_LANDING", VAR.styling)
+        Help.setEnv("PROJECT_LANDING", VAR.styling.replace(".", "/"))
         cli.command(f"code {project}/.env", False, True)
 
         if "db.sql" in files and files["db.sql"].strip() != "":
